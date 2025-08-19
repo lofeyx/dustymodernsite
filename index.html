@@ -181,7 +181,7 @@
       cursor: pointer;
     }
 
-    /* FANS FAVORITES (Portfolio) */
+    /* FANS FAVORITES */
     .fans-favorites-container {
       display: flex;
       gap: 20px;
@@ -337,7 +337,6 @@
       color: #1b1717;
     }
 
-    /* LOGO IN FOOTER */
     footer .footer-logo {
       position: absolute;
       left: 20px;
@@ -485,15 +484,13 @@
 
     /* RESPONSIVE */
     @media (max-width: 768px) {
-      .gallery-container {
-        grid-template-columns: 1fr;
-      }
       .navbar {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center; /* Center navbar on mobile */
       }
       .nav-right {
         margin-top: 10px;
+        justify-content: center; /* Center menu items horizontally */
       }
       .fans-favorites-container {
         flex-direction: column;
@@ -504,6 +501,9 @@
       }
       .fans-favorites-container .small-pics img {
         width: 50%;
+      }
+      .gallery-container {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -640,116 +640,106 @@
   </footer>
 
   <!-- HELPER ICON & POPUP -->
-  <div id="helperIcon" title="Need help?">?</div>
+  <div id="helperIcon">?</div>
   <div id="helperPopup">
     <div id="helperMessages"></div>
     <div id="helperInputContainer">
-      <input
-      type="text" id="helperInput" placeholder="Type your question..." />
+      <input type="text" id="helperInput" placeholder="Type a message..." />
       <button id="helperSendBtn">Send</button>
     </div>
   </div>
 
   <script>
-    // DOM Content Loaded - HERO & SECTIONS animations
-    window.addEventListener('DOMContentLoaded', () => {
-      const sections = document.querySelectorAll('section, .hero');
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if(entry.isIntersecting) entry.target.classList.add('visible');
-          else entry.target.classList.remove('visible');
-        });
-      }, { threshold: 0.2 });
-      sections.forEach(sec => observer.observe(sec));
+    // Dark Mode
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark-mode");
+    }
 
-      // CAROUSEL
-      let currentSlide = 0;
-      const slideElements = document.querySelectorAll("#slides .slide-wrapper");
-      const totalSlides = slideElements.length;
-      let carouselInterval;
-      const slidesContainer = document.getElementById("slides");
-
-      function showSlide(index) {
-        currentSlide = (index + totalSlides) % totalSlides;
-        slidesContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
-      }
-
-      function nextSlide() {
-        showSlide(currentSlide + 1);
-      }
-
-      function startCarousel() {
-        carouselInterval = setInterval(nextSlide, 3000);
-      }
-
-      function stopCarousel() {
-        clearInterval(carouselInterval);
-      }
-
-      slidesContainer.addEventListener('mouseenter', stopCarousel);
-      slidesContainer.addEventListener('mouseleave', startCarousel);
-
-      startCarousel();
-    });
-
-    // MODAL
-    function openModal(event) {
-      event.preventDefault();
-      document.getElementById('aboutModal').style.display = 'block';
+    // Modal
+    function openModal(e) {
+      e.preventDefault();
+      document.getElementById("aboutModal").style.display = "block";
     }
     function closeModal() {
-      document.getElementById('aboutModal').style.display = 'none';
+      document.getElementById("aboutModal").style.display = "none";
     }
 
-    // DARK MODE
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-    }
-
-    // WHATSAPP FORM
-    const whatsappForm = document.getElementById('whatsappForm');
-    whatsappForm.addEventListener('submit', function(e){
+    // WhatsApp Form
+    document.getElementById("whatsappForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      const name = document.getElementById('name').value;
-      const message = document.getElementById('message').value;
-      const whatsappUrl = `https://wa.me/254717163883?text=${encodeURIComponent("Name: "+name+"\nMessage: "+message)}`;
-      window.open(whatsappUrl, '_blank');
+      const name = encodeURIComponent(document.getElementById("name").value);
+      const message = encodeURIComponent(document.getElementById("message").value);
+      const url = `https://wa.me/254717163883?text=Name:${name}%0AMessage:${message}`;
+      window.open(url, "_blank");
     });
 
-    // HELPER CHAT
+    // Helper Chat
     const helperIcon = document.getElementById("helperIcon");
     const helperPopup = document.getElementById("helperPopup");
     const helperMessages = document.getElementById("helperMessages");
     const helperInput = document.getElementById("helperInput");
     const helperSendBtn = document.getElementById("helperSendBtn");
 
-    const autoReplies = [
-      { keywords: ["sell", "products", "items"], reply: "We sell mini stickers, phone stickers, laptop stickers, picture frames, wall stickers, and laced chocolates." },
-      { keywords: ["picture frame", "sizes", "frame sizes"], reply: "Our picture frames range from A5 to A3 sizes." },
-      { keywords: ["deliver thika", "delivery thika"], reply: "We deliver within Thika for free. Parcel charges apply to other areas." },
-      { keywords: ["deliver outside", "outside thika"], reply: "Parcel charges apply to areas outside Thika." },
-      { keywords: ["contact", "reach", "call"], reply: "You can contact us directly via the form or WhatsApp link." }
-    ];
-
-    function getBotReply(userText) {
-      userText = userText.toLowerCase();
-      for (let obj of autoReplies) {
-        for (let keyword of obj.keywords) {
-          if (userText.includes(keyword)) return obj.reply;
-        }
-      }
-      return "Kindly contact us for more info.";
-    }
-
     helperIcon.addEventListener("click", () => {
       if(helperPopup.style.display === "flex") {
+        helperPopup.style.display = "none";
         helperPopup.style.opacity = 0;
-        setTimeout(() => helperPopup.style.display = "none", 300);
       } else {
         helperPopup.style.display = "flex";
-        setTimeout(() => helperPopup.style.opacity = 1, 50);
+        setTimeout(() => { helperPopup.style.opacity = 1; }, 10);
       }
     });
+
+    helperSendBtn.addEventListener("click", sendMessage);
+    helperInput.addEventListener("keypress", function(e){
+      if(e.key === 'Enter') sendMessage();
+    });
+
+    function sendMessage() {
+      const msg = helperInput.value.trim();
+      if(!msg) return;
+      appendMessage(msg, 'user');
+      helperInput.value = '';
+      setTimeout(() => {
+        appendMessage("Typing...", "bot", true);
+        setTimeout(() => {
+          helperMessages.lastChild.remove();
+          appendMessage("Hello! How can I help you today?", "bot");
+        }, 1000);
+      }, 500);
+    }
+
+    function appendMessage(text, sender, typing=false) {
+      const div = document.createElement("div");
+      div.classList.add("helper-msg", sender);
+      if(typing) div.classList.add("typing-dots");
+      div.textContent = text;
+      helperMessages.appendChild(div);
+      helperMessages.scrollTop = helperMessages.scrollHeight;
+    }
+
+    // Fade in sections
+    const sections = document.querySelectorAll('section, .hero');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) entry.target.classList.add('visible');
+      });
+    }, { threshold: 0.1 });
+
+    sections.forEach(section => observer.observe(section));
+
+    // Slider
+    const slides = document.getElementById('slides');
+    let index = 0;
+    setInterval(() => {
+      index++;
+      if(index >= slides.children.length) index = 0;
+      slides.style.transform = `translateX(-${index * 100}%)`;
+    }, 3000);
+  </script>
+</body>
+</html>
+
 
     function addMessage(text, sender) {
       const msg = document.createElement("div");
@@ -785,3 +775,4 @@
   </script>
 </body>
 </html>
+
